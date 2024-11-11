@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    container_name: app
+    ports:
+      - "8080:80"
+    environment:
+      - DB_HOST=database
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=postgres
+    depends_on:
+      - database
+    networks:
+      - net_my_compose_indrabayu
+    # Add healthcheck to ensure the application is running
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:80"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  database:
+    image: postgres:latest
+    container_name: database
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_DB: postgres
+    volumes:
+      - vol_my_compose_indrabayu:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - net_my_compose_indrabayu
+    # Add healthcheck to ensure PostgreSQL is ready
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+networks:
+  net_my_compose_indrabayu:
+    driver: bridge
+
+volumes:
+  vol_my_compose_indrabayu:
+    name: vol_my_compose_indrabayu
